@@ -92,7 +92,7 @@ class NNF(metaclass=abc.ABCMeta):
         """And({self, other})"""
         # prevent unnecessary nesting
         if type(self) == And:
-            return And({*self.children, other})
+            return And({*self.children, *other.children}) if type(other) == And else And({*self.children, other})
         return And({self, other})
 
     def __or__(self: T_NNF, other: U_NNF) -> 'Or[t.Union[T_NNF, U_NNF]]':
