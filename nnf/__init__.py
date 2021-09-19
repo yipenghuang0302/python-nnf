@@ -90,10 +90,16 @@ class NNF(metaclass=abc.ABCMeta):
 
     def __and__(self: T_NNF, other: U_NNF) -> 'And[t.Union[T_NNF, U_NNF]]':
         """And({self, other})"""
+        # prevent unnecessary nesting
+        if type(self) == And:
+            return And({*self.children, other})
         return And({self, other})
 
     def __or__(self: T_NNF, other: U_NNF) -> 'Or[t.Union[T_NNF, U_NNF]]':
         """Or({self, other})"""
+        # prevent unnecessary nesting
+        if type(self) == Or:
+            return Or({*self.children, other})
         return Or({self, other})
 
     def __rshift__(self: T_NNF, other: U_NNF)-> 'Or[t.Union[T_NNF.negate(), U_NNF]]':
