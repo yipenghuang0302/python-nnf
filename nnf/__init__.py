@@ -96,7 +96,8 @@ class NNF(metaclass=abc.ABCMeta):
         """Or({self, other})"""
         return Or({self, other})
 
-    def __rshift__(self: T_NNF, other: U_NNF):
+    def __rshift__(self: T_NNF, other: U_NNF)-> 'Or[t.Union[T_NNF.negate(), U_NNF]]':
+        """Or({self.negate(), other})"""
         return Or({self.negate(), other})
 
     def walk(self) -> t.Iterator['NNF']:
