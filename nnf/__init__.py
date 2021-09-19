@@ -96,6 +96,9 @@ class NNF(metaclass=abc.ABCMeta):
         """Or({self, other})"""
         return Or({self, other})
 
+    def __rshift__(self: T_NNF, other: U_NNF):
+        return Or({self.negate(), other})
+
     def walk(self) -> t.Iterator['NNF']:
         """Yield all nodes in the sentence, depth-first.
 
