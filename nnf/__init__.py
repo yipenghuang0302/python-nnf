@@ -1733,26 +1733,27 @@ def decision(
     return (var & if_true) | (~var & if_false)
 
 def flatten(nnf: NNF):
-    set_and_children = set()
-    set_other = set()
-    operator_type = type(nnf)
+    """Flattens a formula by removing unnecessary extra nestings.
 
+    param var: The formula to be flattened.
+    """
+    new_children = set()
+    outer_operator = type(nnf)
+    # iterate through all children
     for c in nnf.children:
         if type(c) == Var:
-            set_and_children.add(c)
+            new_children.add(c)
+        # atoms don't need to be nested
         elif len(c.children) == 1:
-            set_and_children.update(c.children)
-        elif type(c) == operator_type:
-            set_and_children.update(c.children)
+            new_children.update(c.children)
+        # if the operator type is the same as the outer operator, flatten the formula
+        # and remove the nested operator by only taking the children (i.e. And(And()) or Or(Or()))
+        elif type(c) == outer_operator:
+            new_children.update(flatten(c).children)
         else:
-            set_other.add(c)    
-    nnf = operator_type(set_and_children | set_other)
-
-    for c in nnf.children:
-        if type(c) == operator_type:
-            return flatten(nnf)
-    return nnf
-
+            # otherwise, continue to flatten the children but keep the operator (i.e. And(Or) or Or(And))
+            new_children.add(flatten(c))    
+    return outer_operator(new_children)
 
 #: A node that's always true. Technically an And node without children.
 true = And()  # type: And[Bottom]
@@ -1882,3 +1883,58 @@ config = _Config()
 
 
 from nnf import amc, dsharp, kissat, operators, pysat, tseitin  # noqa: E402
+
+if __name__ == "__main__":
+    # test nnf nesting - and
+    nnf_formula = Var(1)
+    for i in range(10):
+        nnf_formula = nnf_formula & Var(i)
+    nnf_formula_2 = Var(10)
+    for i in range(11, 20):
+        nnf_formula_2 = nnf_formula_2 & Var(i)
+    nnf_formula_3 = nnf_formula & nnf_formula_2
+    print()
+    print(nnf_formula)
+    print(nnf_formula_2)
+    print(nnf_formula_3)
+    print(flatten(nnf_formula_3))
+
+    # test nnf nesting - or
+    nnf_formula = Var(1)
+    for i in range(10):
+        nnf_formula = nnf_formula | Var(i)
+    nnf_formula_2 = Var(10)
+    for i in range(11, 20):
+        nnf_formula_2 = nnf_formula_2 | Var(i)
+    nnf_formula_3 = nnf_formula | nnf_formula_2
+    print()
+    print(nnf_formula)
+    print(nnf_formula_2)
+    print(nnf_formula_3)
+    print(flatten(nnf_formula_3))
+
+    #test nnf nesting - both and's and or's
+    print()
+    nnf_formula = Var(1)
+    for i in range(10):
+        nnf_formula = nnf_formula & (Var(i) | Var(i + 1))
+    print(nnf_formula)
+    print(flatten(nnf_formula))
+
+    print()
+    nnf_formula = Var(1)
+    for i in range(10):
+        nnf_formula = nnf_formula | (Var(i) & Var(i + 1))
+    print(nnf_formula)
+    print(flatten(nnf_formula))
+
+    x, a, y, z, b, c = Var("x"), Var("a"), Var("y"), Var("z"), Var("b"), Var("c")
+    nnf_formula = x | ((a & y) & z & (b | c))
+    print()
+    print(nnf_formula)
+    print(flatten(nnf_formula))
+
+    nnf_formula = x | (((a & ((y | ((x | z) & b)) & c))))
+    print()
+    print(nnf_formula)
+    print(flatten(nnf_formula))
