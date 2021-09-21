@@ -90,17 +90,24 @@ class NNF(metaclass=abc.ABCMeta):
 
     def __and__(self: T_NNF, other: U_NNF) -> 'And[t.Union[T_NNF, U_NNF]]':
         """And({self, other})"""
-        # prevent unnecessary nesting
-        if type(self) == And:
-            return And({*self.children, *other.children}) if type(other) == And else And({*self.children, other})
         return And({self, other})
+        # if not flatten:
+        #     return And({self, other})
+        # else:
+        #     # optionally prevent unnecessary nesting
+        #     if type(self) == And:
+        #         return And({*self.children, *other.children}) if type(other) == And else And({*self.children, other})
+       
 
     def __or__(self: T_NNF, other: U_NNF) -> 'Or[t.Union[T_NNF, U_NNF]]':
         """Or({self, other})"""
-        # prevent unnecessary nesting
-        if type(self) == Or:
-            return Or({*self.children, other})
         return Or({self, other})
+        # if not flatten:
+        #     return Or({self, other})
+        # else:
+        #     # optionally prevent unnecessary nesting
+        #     if type(self) == Or:
+        #         return Or({*self.children, *other.children}) if type(other) == Or else Or({*self.children, other})
 
     def __rshift__(self: T_NNF, other: U_NNF)-> 'Or[t.Union[T_NNF.negate(), U_NNF]]':
         """Or({self.negate(), other})"""
@@ -1724,6 +1731,26 @@ def decision(
     """
     return (var & if_true) | (~var & if_false)
 
+def flatten(nnf: NNF, operator_type: t.Union[And, Or]):
+    set_and_children = set()
+    set_other = set()
+    if type(nnf) == operator_type:
+        for c in nnf.children:
+            if type(c) == Var:
+                set_and_children.add(c)
+            elif len(c.children) == 1:
+                set_and_children.update(c.children)
+            elif type(c) == operator_type:
+                set_and_children.update(c.children)
+            else:
+                set_other.update(c)    
+        nnf = operator_type(set_and_children | set_other)
+
+        for c in nnf.children:
+            if type(c) == operator_type:
+                return flatten(nnf, operator_type)
+        return nnf
+
 
 #: A node that's always true. Technically an And node without children.
 true = And()  # type: And[Bottom]
@@ -1853,3 +1880,46 @@ config = _Config()
 
 
 from nnf import amc, dsharp, kissat, operators, pysat, tseitin  # noqa: E402
+
+"""
+# test nnf nesting - and
+print()
+nnf_formula = Var(1)
+for i in range(10):
+    nnf_formula = nnf_formula & Var(i)
+print(nnf_formula)
+print(flatten(nnf_formula, And))
+
+nnf_formula_2 = Var(10)
+for i in range(11, 20):
+    nnf_formula_2 = nnf_formula_2 & Var(i)
+nnf_formula_3 = nnf_formula & nnf_formula_2
+print()
+print(nnf_formula_3)
+print(flatten(nnf_formula_3, And))
+
+# test nnf nesting - or
+print()
+nnf_formula = Var(1)
+for i in range(10):
+    nnf_formula = nnf_formula | Var(i)
+print(nnf_formula)
+print(flatten(nnf_formula, Or))
+
+nnf_formula_2 = Var(10)
+for i in range(11, 20):
+    nnf_formula_2 = nnf_formula_2 | Var(i)
+nnf_formula_3 = nnf_formula | nnf_formula_2
+print()
+print(nnf_formula_3)
+print(flatten(nnf_formula_3, Or))
+"""
+
+#test nnf nesting - both and's and or's
+print()
+nnf_formula = Var(1)
+for i in range(10):
+    nnf_formula = nnf_formula & (Var(i) | Var(i + 1))
+print(nnf_formula)
+print()
+print(flatten(nnf_formula, And))
