@@ -1744,7 +1744,7 @@ def flatten(nnf: NNF, operator_type: t.Union[And, Or]):
             elif type(c) == operator_type:
                 set_and_children.update(c.children)
             else:
-                set_other.update(c)    
+                set_other.add(c)    
         nnf = operator_type(set_and_children | set_other)
 
         for c in nnf.children:
@@ -1919,7 +1919,7 @@ print(flatten(nnf_formula_3, Or))
 #test nnf nesting - both and's and or's
 print()
 nnf_formula = Var(1)
-for i in range(10):
+for i in range(3):
     nnf_formula = nnf_formula & (Var(i) | Var(i + 1))
 print(nnf_formula)
 print()
