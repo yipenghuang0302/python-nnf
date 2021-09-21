@@ -1732,25 +1732,26 @@ def decision(
     """
     return (var & if_true) | (~var & if_false)
 
-def flatten(nnf: NNF, operator_type: t.Union[And, Or]):
+def flatten(nnf: NNF):
     set_and_children = set()
     set_other = set()
-    if type(nnf) == operator_type:
-        for c in nnf.children:
-            if type(c) == Var:
-                set_and_children.add(c)
-            elif len(c.children) == 1:
-                set_and_children.update(c.children)
-            elif type(c) == operator_type:
-                set_and_children.update(c.children)
-            else:
-                set_other.add(c)    
-        nnf = operator_type(set_and_children | set_other)
+    operator_type = type(nnf)
 
-        for c in nnf.children:
-            if type(c) == operator_type:
-                return flatten(nnf, operator_type)
-        return nnf
+    for c in nnf.children:
+        if type(c) == Var:
+            set_and_children.add(c)
+        elif len(c.children) == 1:
+            set_and_children.update(c.children)
+        elif type(c) == operator_type:
+            set_and_children.update(c.children)
+        else:
+            set_other.add(c)    
+    nnf = operator_type(set_and_children | set_other)
+
+    for c in nnf.children:
+        if type(c) == operator_type:
+            return flatten(nnf)
+    return nnf
 
 
 #: A node that's always true. Technically an And node without children.
@@ -1918,9 +1919,8 @@ print(flatten(nnf_formula_3, Or))
 
 #test nnf nesting - both and's and or's
 print()
-nnf_formula = Var(1)
-for i in range(3):
-    nnf_formula = nnf_formula & (Var(i) | Var(i + 1))
+p, q, r, s, u = Var("p"), Var("q"), Var("r"), Var("s"), Var("u")
+nnf_formula = p | (((q | (u | ((p | s) & r)) & s)))
 print(nnf_formula)
 print()
-print(flatten(nnf_formula, And))
+print(flatten(nnf_formula))
