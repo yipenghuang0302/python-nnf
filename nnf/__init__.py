@@ -92,23 +92,10 @@ class NNF(metaclass=abc.ABCMeta):
     def __and__(self: T_NNF, other: U_NNF) -> 'And[t.Union[T_NNF, U_NNF]]':
         """And({self, other})"""
         return And({self, other})
-        # if not flatten:
-        #     return And({self, other})
-        # else:
-        #     # optionally prevent unnecessary nesting
-        #     if type(self) == And:
-        #         return And({*self.children, *other.children}) if type(other) == And else And({*self.children, other})
-       
 
     def __or__(self: T_NNF, other: U_NNF) -> 'Or[t.Union[T_NNF, U_NNF]]':
         """Or({self, other})"""
         return Or({self, other})
-        # if not flatten:
-        #     return Or({self, other})
-        # else:
-        #     # optionally prevent unnecessary nesting
-        #     if type(self) == Or:
-        #         return Or({*self.children, *other.children}) if type(other) == Or else Or({*self.children, other})
 
     def __rshift__(self: T_NNF, other: U_NNF)-> 'Or[t.Union[T_NNF.negate(), U_NNF]]':
         """Or({self.negate(), other})"""
@@ -1883,58 +1870,3 @@ config = _Config()
 
 
 from nnf import amc, dsharp, kissat, operators, pysat, tseitin  # noqa: E402
-
-if __name__ == "__main__":
-    # test nnf nesting - and
-    nnf_formula = Var(1)
-    for i in range(10):
-        nnf_formula = nnf_formula & Var(i)
-    nnf_formula_2 = Var(10)
-    for i in range(11, 20):
-        nnf_formula_2 = nnf_formula_2 & Var(i)
-    nnf_formula_3 = nnf_formula & nnf_formula_2
-    print()
-    print(nnf_formula)
-    print(nnf_formula_2)
-    print(nnf_formula_3)
-    print(flatten(nnf_formula_3))
-
-    # test nnf nesting - or
-    nnf_formula = Var(1)
-    for i in range(10):
-        nnf_formula = nnf_formula | Var(i)
-    nnf_formula_2 = Var(10)
-    for i in range(11, 20):
-        nnf_formula_2 = nnf_formula_2 | Var(i)
-    nnf_formula_3 = nnf_formula | nnf_formula_2
-    print()
-    print(nnf_formula)
-    print(nnf_formula_2)
-    print(nnf_formula_3)
-    print(flatten(nnf_formula_3))
-
-    #test nnf nesting - both and's and or's
-    print()
-    nnf_formula = Var(1)
-    for i in range(10):
-        nnf_formula = nnf_formula & (Var(i) | Var(i + 1))
-    print(nnf_formula)
-    print(flatten(nnf_formula))
-
-    print()
-    nnf_formula = Var(1)
-    for i in range(10):
-        nnf_formula = nnf_formula | (Var(i) & Var(i + 1))
-    print(nnf_formula)
-    print(flatten(nnf_formula))
-
-    x, a, y, z, b, c = Var("x"), Var("a"), Var("y"), Var("z"), Var("b"), Var("c")
-    nnf_formula = x | ((a & y) & z & (b | c))
-    print()
-    print(nnf_formula)
-    print(flatten(nnf_formula))
-
-    nnf_formula = x | (((a & ((y | ((x | z) & b)) & c))))
-    print()
-    print(nnf_formula)
-    print(flatten(nnf_formula))
