@@ -62,6 +62,7 @@ __all__ = (
     "tseitin",
     "operators",
     "pysat",
+    "flatten"
 )
 
 
