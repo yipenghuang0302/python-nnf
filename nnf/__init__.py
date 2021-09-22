@@ -1719,8 +1719,8 @@ def decision(
     """
     return (var & if_true) | (~var & if_false)
 
-def flatten(nnf: NNF):
-    """Flattens a formula by removing unnecessary extra nestings.
+def flatten_one_level(nnf: NNF):
+    """Flattens the first "level" of a formula by removing unnecessary extra nestings.
 
     param var: The formula to be flattened.
     """
@@ -1730,16 +1730,13 @@ def flatten(nnf: NNF):
     for c in nnf.children:
         if type(c) == Var:
             new_children.add(c)
-        # atoms don't need to be nested
-        elif len(c.children) == 1:
-            new_children.update(c.children)
         # if the operator type is the same as the outer operator, flatten the formula
         # and remove the nested operator by only taking the children (i.e. And(And()) or Or(Or()))
         elif type(c) == outer_operator:
-            new_children.update(flatten(c).children)
+            new_children.update(c.children)
         else:
-            # otherwise, continue to flatten the children but keep the operator (i.e. And(Or) or Or(And))
-            new_children.add(flatten(c))    
+            # otherwise, keep the operator as is if it is a different type (i.e. And(Or) or Or(And))
+            new_children.add(c)    
     return outer_operator(new_children)
 
 #: A node that's always true. Technically an And node without children.
