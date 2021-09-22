@@ -1729,26 +1729,6 @@ def decision(
     """
     return (var & if_true) | (~var & if_false)
 
-def flatten_one_level(nnf: NNF):
-    """Flattens the first "level" of a formula by removing unnecessary extra nestings.
-
-    param var: The formula to be flattened.
-    """
-    new_children = set()
-    outer_operator = type(nnf)
-    # iterate through all children
-    for c in nnf.children:
-        if type(c) == Var:
-            new_children.add(c)
-        # if the operator type is the same as the outer operator, flatten the formula
-        # and remove the nested operator by only taking the children (i.e. And(And()) or Or(Or()))
-        elif type(c) == outer_operator:
-            new_children.update(c.children)
-        else:
-            # otherwise, keep the operator as is if it is a different type (i.e. And(Or) or Or(And))
-            new_children.add(c)    
-    return outer_operator(new_children)
-
 #: A node that's always true. Technically an And node without children.
 true = And()  # type: And[Bottom]
 #: A node that's always false. Technically an Or node without children.
