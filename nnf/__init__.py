@@ -84,17 +84,27 @@ def all_models(names: 't.Iterable[Name]') -> t.Iterator[Model]:
             new[name] = True
             yield new
 
+auto_simplify = False
 
 class NNF(metaclass=abc.ABCMeta):
     """Base class for all NNF sentences."""
     __slots__ = ("__weakref__",)
-
+    
+    
     def __and__(self: T_NNF, other: U_NNF) -> 'And[t.Union[T_NNF, U_NNF]]':
-        """And({self, other})"""
+        """And({self, other})""" 
+        # prevent unnecessary nesting
+        if auto_simplify:
+            if type(self) == And:
+                return And({*self.children, *other.children}) if type(other) == And else And({*self.children, other})
         return And({self, other})
 
     def __or__(self: T_NNF, other: U_NNF) -> 'Or[t.Union[T_NNF, U_NNF]]':
         """Or({self, other})"""
+        # prevent unnecessary nesting
+        if auto_simplify:
+            if type(self) == Or:
+                return Or({*self.children, *other.children}) if type(other) == Or else Or({*self.children, other})
         return Or({self, other})
 
     def __rshift__(self: T_NNF, other: U_NNF)-> 'Or[t.Union[T_NNF.negate(), U_NNF]]':
