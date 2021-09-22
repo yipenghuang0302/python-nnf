@@ -62,7 +62,7 @@ __all__ = (
     "tseitin",
     "operators",
     "pysat",
-    "flatten"
+    "flatten_one_level"
 )
 
 
