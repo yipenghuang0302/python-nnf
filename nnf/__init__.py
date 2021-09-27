@@ -14,6 +14,7 @@
 
 __version__ = '0.2.1'
 
+from _typeshed import IdentityFunction
 import abc
 import functools
 import itertools
@@ -62,7 +63,6 @@ __all__ = (
     "tseitin",
     "operators",
     "pysat",
-    "flatten_one_level"
 )
 
 
@@ -86,28 +86,36 @@ def all_models(names: 't.Iterable[Name]') -> t.Iterator[Model]:
 
 auto_simplify = False
 
+
 class NNF(metaclass=abc.ABCMeta):
     """Base class for all NNF sentences."""
     __slots__ = ("__weakref__",)
-    
-    
+
     def __and__(self: T_NNF, other: U_NNF) -> 'And[t.Union[T_NNF, U_NNF]]':
-        """And({self, other})""" 
+        """And({self, other})"""
         # prevent unnecessary nesting
-        if auto_simplify:
-            if type(self) == And:
-                return And({*self.children, *other.children}) if type(other) == And else And({*self.children, other})
+        if config.auto_simplify:
+            if not isinstance(self, And) and isinstance(other, And):
+                return And({self, *other.children})
+            elif isinstance(self, And) and not isinstance(other, And):
+                return And({*self.children, other})
+            elif isinstance(self, And) and isinstance(other, And):
+                return And({*self.children, *other.children})
         return And({self, other})
 
     def __or__(self: T_NNF, other: U_NNF) -> 'Or[t.Union[T_NNF, U_NNF]]':
         """Or({self, other})"""
         # prevent unnecessary nesting
-        if auto_simplify:
-            if type(self) == Or:
-                return Or({*self.children, *other.children}) if type(other) == Or else Or({*self.children, other})
+        if config.auto_simplify:
+            if not isinstance(self, Or) and isinstance(other, Or):
+                return Or({self, *other.children})
+            elif isinstance(self, Or) and not isinstance(other, Or):
+                return Or({*self.children, other})
+            elif isinstance(self, Or) and isinstance(other, Or):
+                return Or({*self.children, *other.children})
         return Or({self, other})
 
-    def __rshift__(self: T_NNF, other: U_NNF)-> 'Or[t.Union[T_NNF.negate(), U_NNF]]':
+    def __rshift__(self, other: 'NNF')-> 'Or[NNF]':
         """Or({self.negate(), other})"""
         return Or({self.negate(), other})
 
@@ -1802,6 +1810,7 @@ class _Config:
     sat_backend = _Setting("auto", {"auto", "native", "kissat", "pysat"})
     models_backend = _Setting("auto", {"auto", "native", "pysat"})
     pysat_solver = _Setting("minisat22")
+    auto_simplify = _Setting(False, {True, False})
 
     __slots__ = ()
 
@@ -1853,6 +1862,14 @@ class _Config:
 #:   `pysat.solvers.SolverNames
 #:   <https://pysathq.github.io/docs/html/api/solvers.html
 #:   #pysat.solvers.SolverNames>`_. Default: ``minisat22``.
+#:
+#: - ``auto_simplify``: An optional setting to prevent "extra" nesting when
+#:     NNF formulas are added onto with & or |.
+#:
+#:   - ``True``: Remove nesting whenever & or | are used on an NNF formula.
+#:   - ``False``: Generate formulas as normal, with nesting reflecting exactly
+#:     how the formula was created.
+
 config = _Config()
 
 
