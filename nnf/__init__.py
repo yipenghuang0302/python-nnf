@@ -14,7 +14,6 @@
 
 __version__ = '0.2.1'
 
-from _typeshed import IdentityFunction
 import abc
 import functools
 import itertools
@@ -84,8 +83,6 @@ def all_models(names: 't.Iterable[Name]') -> t.Iterator[Model]:
             new[name] = True
             yield new
 
-auto_simplify = False
-
 
 class NNF(metaclass=abc.ABCMeta):
     """Base class for all NNF sentences."""
@@ -115,7 +112,7 @@ class NNF(metaclass=abc.ABCMeta):
                 return Or({*self.children, *other.children})
         return Or({self, other})
 
-    def __rshift__(self, other: 'NNF')-> 'Or[NNF]':
+    def __rshift__(self, other: 'NNF') -> 'Or[NNF]':
         """Or({self.negate(), other})"""
         return Or({self.negate(), other})
 
@@ -1736,6 +1733,7 @@ def decision(
     :param if_false: The branch if the decision is false.
     """
     return (var & if_true) | (~var & if_false)
+
 
 #: A node that's always true. Technically an And node without children.
 true = And()  # type: And[Bottom]
