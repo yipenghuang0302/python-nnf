@@ -1107,6 +1107,7 @@ def test_models(sentence: nnf.NNF):
     assert model_set(real_models) == model_set(models)
 
 
+@config(auto_simplify=False)
 def test_nesting():
     a, b, c, d, e, f = Var("a"), Var("b"), Var("c"), Var("d"), \
                        Var("e"), Var("f")
