@@ -1105,3 +1105,85 @@ def test_models(sentence: nnf.NNF):
     models = list(sentence.models())
     assert len(real_models) == len(models)
     assert model_set(real_models) == model_set(models)
+
+
+@config(auto_simplify=False)
+def test_nesting():
+    a, b, c, d, e, f = Var("a"), Var("b"), Var("c"), Var("d"), \
+                       Var("e"), Var("f")
+
+    # test left nestings on And
+    config.auto_simplify = False
+    formula = a & (b & c)
+    formula = formula & (d | e)
+    assert formula == And({And({And({b, c}), a}), Or({d, e})})
+    config.auto_simplify = True
+    formula = a & (b & c)
+    formula = formula & (d | e)
+    assert formula == And({a, b, c, Or({d, e})})
+
+    # test right nestings on And
+    config.auto_simplify = False
+    formula = a & (b & c)
+    formula = (d | e) & formula
+    assert formula == And({And({And({b, c}), a}), Or({d, e})})
+    config.auto_simplify = True
+    formula = a & (b & c)
+    formula = (d | e) & formula
+    assert formula == And({a, b, c, Or({d, e})})
+
+    # test nestings on both sides with And
+    config.auto_simplify = False
+    formula = a & (b & c)
+    formula2 = d & (e & f)
+    formula = formula & formula2
+    assert formula == And({(And({a, And({b, c})})), And({d, And({e, f})})})
+    config.auto_simplify = True
+    formula = a & (b & c)
+    formula2 = d & (e & f)
+    formula = formula & formula2
+    assert formula == And({a, b, c, d, e, f})
+
+    # test left nestings on Or
+    config.auto_simplify = False
+    formula = a | (b | c)
+    formula = formula | (d & e)
+    assert formula == Or({Or({Or({b, c}), a}), And({d, e})})
+    config.auto_simplify = True
+    formula = a | (b | c)
+    formula = formula | (d & e)
+    assert formula == Or({a, b, c, And({d, e})})
+
+    # test right nestings on Or
+    config.auto_simplify = False
+    formula = a | (b | c)
+    formula = (d & e) | formula
+    assert formula == Or({Or({Or({b, c}), a}), And({d, e})})
+    config.auto_simplify = True
+    formula = a | (b | c)
+    formula = (d & e) | formula
+    assert formula == Or({a, b, c, And({d, e})})
+
+    # test nestings on both sides with Or
+    config.auto_simplify = False
+    formula = a | (b | c)
+    formula2 = d | (e | f)
+    formula = formula | formula2
+    assert formula == Or({(Or({a, Or({b, c})})), Or({d, Or({e, f})})})
+    config.auto_simplify = True
+    formula = a | (b | c)
+    formula2 = d | (e | f)
+    formula = formula | formula2
+    assert formula == Or({a, b, c, d, e, f})
+
+    # test nestings with both And and Or
+    config.auto_simplify = False
+    formula = a & (b | c)
+    formula2 = d & (e & f)
+    formula = formula | formula2
+    assert formula == Or({(And({a, Or({b, c})})), And({d, And({e, f})})})
+    config.auto_simplify = True
+    formula = a & (b | c)
+    formula2 = d & (e & f)
+    formula = formula | formula2
+    assert formula == Or({(And({a, Or({b, c})})), And({d, e, f})})
