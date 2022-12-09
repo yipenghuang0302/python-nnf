@@ -1107,6 +1107,21 @@ def test_models(sentence: nnf.NNF):
     assert model_set(real_models) == model_set(models)
 
 
+def test_tautology_simplification():
+    x = Var("x")
+    T = x | ~x
+
+    T1 = T.to_CNF()
+    T2 = T.to_CNF(simplify_tautologies=False)
+
+    assert T1 == nnf.true
+    assert T1.is_CNF()
+
+    assert T2 != nnf.true
+    assert T2 == And({Or({~x, x})})
+    assert T2.is_CNF()
+
+
 @config(auto_simplify=False)
 def test_nesting():
     a, b, c, d, e, f = Var("a"), Var("b"), Var("c"), Var("d"), \

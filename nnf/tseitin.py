@@ -10,7 +10,7 @@ from nnf import NNF, Var, And, Or, Internal
 from nnf.util import memoize
 
 
-def to_CNF(theory: NNF) -> And[Or[Var]]:
+def to_CNF(theory: NNF, simplify_tautologies=True) -> And[Or[Var]]:
     """Convert an NNF into CNF using the Tseitin Encoding.
 
     :param theory: Theory to convert.
@@ -73,7 +73,7 @@ def to_CNF(theory: NNF) -> And[Or[Var]]:
 
         elif isinstance(node, Or):
             children = {process_node(c) for c in node.children}
-            if any(~var in children for var in children):
+            if simplify_tautologies and any(~var in children for var in children):
                 return
             clauses.append(Or(children))
 
