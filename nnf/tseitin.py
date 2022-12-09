@@ -73,7 +73,7 @@ def to_CNF(theory: NNF, simplify_tautologies=True) -> And[Or[Var]]:
 
         elif isinstance(node, Or):
             children = {process_node(c) for c in node.children}
-            if simplify_tautologies and any(~var in children for var in children):
+            if simplify_tautologies and any(~v in children for v in children):
                 return
             clauses.append(Or(children))
 
