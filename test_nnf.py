@@ -1107,6 +1107,14 @@ def test_models(sentence: nnf.NNF):
     assert model_set(real_models) == model_set(models)
 
 
+@given(NNF())
+def test_tautology_simplification_names(sentence: nnf.NNF):
+    names1 = set(sentence.vars())
+    T = sentence.to_CNF(simplify_tautologies=False)
+    names2 = set({v for v in T.vars() if not isinstance(v, nnf.Aux)})
+    assert names1 == names2
+
+
 def test_tautology_simplification():
     x = Var("x")
     T = x | ~x

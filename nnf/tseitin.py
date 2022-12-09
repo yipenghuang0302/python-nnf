@@ -35,7 +35,7 @@ def to_CNF(theory: NNF, simplify_tautologies: bool = True) -> And[Or[Var]]:
 
         aux = Var.aux()
 
-        if any(~var in children for var in children):
+        if simplify_tautologies and any(~var in children for var in children):
             if isinstance(node, And):
                 clauses.append(Or({~aux}))
             else:
