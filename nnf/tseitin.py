@@ -10,11 +10,11 @@ from nnf import NNF, Var, And, Or, Internal
 from nnf.util import memoize
 
 
-def to_CNF(theory: NNF, simplify_tautologies: bool = True) -> And[Or[Var]]:
+def to_CNF(theory: NNF, simplify: bool = True) -> And[Or[Var]]:
     """Convert an NNF into CNF using the Tseitin Encoding.
 
     :param theory: Theory to convert.
-    :param simplify_tautologies: If True, remove clauses that are always true.
+    :param simplify: If True, remove clauses that are always true.
     """
 
     clauses = []
@@ -35,7 +35,7 @@ def to_CNF(theory: NNF, simplify_tautologies: bool = True) -> And[Or[Var]]:
 
         aux = Var.aux()
 
-        if simplify_tautologies and any(~var in children for var in children):
+        if simplify and any(~var in children for var in children):
             if isinstance(node, And):
                 clauses.append(Or({~aux}))
             else:
@@ -74,7 +74,7 @@ def to_CNF(theory: NNF, simplify_tautologies: bool = True) -> And[Or[Var]]:
 
         elif isinstance(node, Or):
             children = {process_node(c) for c in node.children}
-            if simplify_tautologies and any(~v in children for v in children):
+            if simplify and any(~v in children for v in children):
                 return
             clauses.append(Or(children))
 
