@@ -14,7 +14,8 @@ def to_CNF(theory: NNF, simplify: bool = True) -> And[Or[Var]]:
     """Convert an NNF into CNF using the Tseitin Encoding.
 
     :param theory: Theory to convert.
-    :param simplify: If True, remove clauses that are always true.
+    :param simplify: If True, simplify clauses even if that means eliminating
+                     variables.
     """
 
     clauses = []
