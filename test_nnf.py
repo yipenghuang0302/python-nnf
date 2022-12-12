@@ -1107,6 +1107,29 @@ def test_models(sentence: nnf.NNF):
     assert model_set(real_models) == model_set(models)
 
 
+@given(NNF())
+def test_toCNF_simplification_names(sentence: nnf.NNF):
+    names1 = set(sentence.vars())
+    T = sentence.to_CNF(simplify=False)
+    names2 = set({v for v in T.vars() if not isinstance(v, nnf.Aux)})
+    assert names1 == names2
+
+
+def test_toCNF_simplification():
+    x = Var("x")
+    T = x | ~x
+
+    T1 = T.to_CNF()
+    T2 = T.to_CNF(simplify=False)
+
+    assert T1 == nnf.true
+    assert T1.is_CNF()
+
+    assert T2 != nnf.true
+    assert T2 == And({Or({~x, x})})
+    assert T2.is_CNF()
+
+
 @config(auto_simplify=False)
 def test_nesting():
     a, b, c, d, e, f = Var("a"), Var("b"), Var("c"), Var("d"), \

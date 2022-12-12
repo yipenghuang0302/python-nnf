@@ -574,9 +574,12 @@ class NNF(metaclass=abc.ABCMeta):
 
         return neg(self)
 
-    def to_CNF(self) -> 'And[Or[Var]]':
-        """Compile theory to a semantically equivalent CNF formula."""
-        return tseitin.to_CNF(self)
+    def to_CNF(self, simplify: bool = True) -> 'And[Or[Var]]':
+        """Compile theory to a semantically equivalent CNF formula.
+
+        :param simplify: If True, simplify clauses even if that means
+                     eliminating variables."""
+        return tseitin.to_CNF(self, simplify)
 
     def _cnf_satisfiable(self) -> bool:
         """Call a SAT solver on the presumed CNF theory."""
