@@ -5,7 +5,7 @@ with open("README.md") as f:
 
 setuptools.setup(
     name="nnf",
-    version='0.4.0',
+    version='0.4.1',
     author="Jan Verbeek, Christian Muise",
     author_email="jan.verbeek@posteo.nl, christian.muise@queensu.ca",
     description="Manipulate NNF (Negation Normal Form) logical sentences",
