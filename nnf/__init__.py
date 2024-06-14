@@ -1149,7 +1149,7 @@ class NNF(metaclass=abc.ABCMeta):
                         # be reasonable to number them instead
                         label = "<{}>".format(node.name.hex[:4])
                     else:
-                        label = str(node.name)
+                        label = str(node.name)[:8]
                     label = label.replace('"', r'\"')
                     color = colors['var']
                     if not node.true:

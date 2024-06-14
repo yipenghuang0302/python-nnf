@@ -123,6 +123,53 @@ def PROB(node: NNF, probs: t.Dict[Name, float]) -> float:
     return eval(node, operator.add, operator.mul, 0.0, 1.0, _prob_label(probs))
 
 
+QWMCCoeff = t.Dict[t.Dict[t.Tuple, str], float]
+
+
+def QWMC(
+        node: NNF,
+        vars: t.Dict[Name, Name],
+        probs: t.Dict[Name, float]
+) -> QWMCCoeff:
+    # General ×
+    # ? Neutral +
+    # Non-idempotent +
+    # = (s)d-DNNF
+
+    def add(a: QWMCCoeff, b: QWMCCoeff) -> QWMCCoeff:
+        qwmc = a.copy()
+        for key_b in b:
+            if key_b in qwmc:
+                qwmc[key_b] = qwmc[key_b] + b[key_b]
+            else:
+                qwmc[key_b] = b[key_b]
+        return qwmc
+
+    def mul(a: QWMCCoeff, b: QWMCCoeff) -> QWMCCoeff:
+        qwmc = {}
+        for key_a in a:
+            for key_b in b:
+                qwmc[key_a.union(key_b)] = a[key_a]*b[key_b]
+        return qwmc
+
+    def label(var: Var) -> QWMCCoeff:
+        if var.true:
+            if var.name in vars:
+                dictionary = { vars[var.name][0]:vars[var.name][1] }
+                thing = { frozenset(dictionary.items()):1.0 }
+                return thing
+            elif var.name in probs:
+               return { frozenset({}):probs[var.name] } 
+            else:
+                dictionary = { var.name[0]:var.name[1] }
+                thing = { frozenset(dictionary.items()):1.0 }
+                return thing
+        else:
+            return { frozenset({}):1.0 } 
+
+    return eval(node, add, mul, {}, { frozenset({}):1.0 }, label)
+
+
 GradProb = t.Tuple[float, float]
 
 
