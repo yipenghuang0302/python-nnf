@@ -161,6 +161,51 @@ def QWMC(
             elif var.name in probs:
                return { frozenset({}):probs[var.name] } 
             else:
+                return { frozenset({}):1.0 }
+        else:
+            return { frozenset({}):1.0 } 
+
+    return eval(node, add, mul, {}, { frozenset({}):1.0 }, label)
+
+def QWMC_merge(
+        node: NNF,
+        vars: t.Dict[Name, Name],
+        probs: t.Dict[Name, float]
+) -> QWMCCoeff:
+    # General ×
+    # ? Neutral +
+    # Non-idempotent +
+    # = (s)d-DNNF
+
+    def add(a: QWMCCoeff, b: QWMCCoeff) -> QWMCCoeff:
+        qwmc = a.copy()
+        for key_b in b:
+            if key_b in qwmc:
+                qwmc[key_b] = qwmc[key_b] + b[key_b]
+                if abs(qwmc[key_b])<0.00000005:
+                    del qwmc[key_b]
+            else:
+                qwmc[key_b] = b[key_b]
+        return qwmc
+
+    def mul(a: QWMCCoeff, b: QWMCCoeff) -> QWMCCoeff:
+        qwmc = {}
+        for key_a in a:
+            if a[key_a]:
+                for key_b in b:
+                    if b[key_b]:
+                        qwmc[key_a.union(key_b)] = a[key_a]*b[key_b]
+        return qwmc
+
+    def label(var: Var) -> QWMCCoeff:
+        if var.true:
+            if var.name in vars:
+                dictionary = { vars[var.name][0]:vars[var.name][1] }
+                thing = { frozenset(dictionary.items()):1.0 }
+                return thing
+            elif var.name in probs:
+               return { frozenset({}):probs[var.name] } 
+            else:
                 dictionary = { var.name[0]:var.name[1] }
                 thing = { frozenset(dictionary.items()):1.0 }
                 return thing
